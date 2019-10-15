@@ -1,2 +1,2 @@
 performance-big:
-  bazel test //performance:big --org graknlabs --repo grakn
+  bazel test //test/performance:big --org graknlabs --repo grakn
