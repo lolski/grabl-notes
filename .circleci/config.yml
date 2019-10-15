@@ -1,0 +1,2 @@
+performance-small:
+  bazel test //performance:small --org graknlabs --repo grakn
