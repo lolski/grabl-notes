@@ -1,2 +1,63 @@
-performance-big:
-  bazel test //test/performance:big --org graknlabs --repo grakn
+# grabl config
+
+
+dependencies:
+  - graql:
+      type: snapshot
+  - client-java:
+      type: release
+
+performance:
+  jobs:
+    run-grakn-1:
+      type: background
+      run: |
+        bazel build //:grakn-core-all-linux-targz
+        tar -xf ./bazel-bin/grakn-core-all-linux.targz -C ./dist/
+        cd ./dist/
+        ./grakn server start
+
+    run-grakn-2:
+      type: background
+      run: |
+        bazel build //:grakn-core-all-linux-targz
+        tar -xf ./bazel-bin/grakn-core-all-linux.targz -C ./dist/
+        ./grakn server start join $GRABL_PERFORMANCE_RUN_GRAKN_1_ADDRESS
+
+    run-grakn-3:
+      type: background
+      run: |
+        bazel build //:grakn-core-all-linux-targz
+        tar -xf ./bazel-bin/grakn-core-all-linux.targz -C ./dist/
+        cd ./dist/
+        ./grakn server start join $GRABL_PERFORMANCE_RUN_GRAKN_1_ADDRESS
+
+    test-performance-big:
+      type: foreground
+      run: |
+        bazel test //test/performance:big --
+        --grakn-address $GRABL_PERFORMANCE_RUN_GRAKN_1_ADDRESS
+        --org $GRABL_ORG
+        --repo $GRABL_REPO
+        --commit $GRABL_COMMIT
+        --username $GRABL_USERNAME
+        --token $GRABL_TOKEN
+
+  workflow:
+    - run-grakn-1
+    - run-grakn-2:
+        depends: [run-grakn-1]
+    - run-grakn-3:
+        depends: [run-grakn-1]
+    - test-performance-big:
+        depends: [run-grakn-1, run-grakn-2, run-grakn-3]
+
+release:
+  jobs:
+    release-validate-deps:
+      run: |
+        bazel run @graknlabs_build_tools//ci:release-validate-deps -- graknlabs_common graknlabs_graql graknlabs_protocol
+
+  workflow:
+    - release-validate
+
