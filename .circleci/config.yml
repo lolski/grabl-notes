@@ -7,25 +7,25 @@ jobs:
     - run:
         export GRABL_USERNAME=$CIRCLE_USERNAME
         export GRABL_TOKEN=$CIRCLE_TOKEN
-        bazel run @graknlabs_grabl//correctness:start -- --test test-A --org $CIRCLE_ORG --repo $CIRCLE_REPO --job-id $CIRCLE_JOB_ID
+        bazel run @graknlabs_grabl//correctness:start -- --name test-A --org $CIRCLE_ORG --repo $CIRCLE_REPO --job-id $CIRCLE_JOB_ID
     - onsuccess:
         export GRABL_USERNAME=$CIRCLE_USERNAME
         export GRABL_TOKEN=$CIRCLE_TOKEN
-        bazel run @graknlabs_grabl//correctness:success -- --test test-A --org $CIRCLE_ORG --repo $CIRCLE_REPO --job-id $CIRCLE_JOB_ID
+        bazel run @graknlabs_grabl//correctness:success -- --name test-A --org $CIRCLE_ORG --repo $CIRCLE_REPO --job-id $CIRCLE_JOB_ID
     - onerror:
         export GRABL_USERNAME=$CIRCLE_USERNAME
         export GRABL_TOKEN=$CIRCLE_TOKEN
-        bazel run @graknlabs_grabl//correctness:error -- --test test-A --org $CIRCLE_ORG --repo $CIRCLE_REPO --job-id $CIRCLE_JOB_ID
+        bazel run @graknlabs_grabl//correctness:error -- --name test-A --org $CIRCLE_ORG --repo $CIRCLE_REPO --job-id $CIRCLE_JOB_ID
 
   performance-small:
     run: |
       bazel test //test/performance:small--
-      --grakn-address $GRABL_GRAKN_ADDRESS
-      --org $GRABL_ORG
-      --repo $GRABL_REPO
-      --commit $GRABL_COMMIT
-      --username $GRABL_USERNAME
-      --token $GRABL_TOKEN
+        --grakn-address $GRABL_GRAKN_ADDRESS
+        --org $GRABL_ORG
+        --repo $GRABL_REPO
+        --commit $GRABL_COMMIT
+        --username $GRABL_USERNAME
+        --token $GRABL_TOKEN
 
   grabl-correctness-completed:
     run: |
@@ -33,24 +33,26 @@ jobs:
       export GRABL_TOKEN=$CIRCLE_TOKEN
       bazel run @graknlabs_grabl//correctness:completed -- --org $CIRCLE_ORG --repo $CIRCLE_REPO
 
-  deploy-a:
+  deploy-github:
     - run:
         export GRABL_USERNAME=$CIRCLE_USERNAME
         export GRABL_TOKEN=$CIRCLE_TOKEN
-        bazel run @graknlabs_grabl//release:start -- --test deploy-A --org $CIRCLE_ORG --repo $CIRCLE_REPO --job-id $CIRCLE_JOB_ID
+        bazel run @graknlabs_grabl//release/deployment:start -- --name deploy-github --org $CIRCLE_ORG --repo $CIRCLE_REPO --job-id $CIRCLE_JOB_ID
+    - run:
+        bazel run //:deploy-github
     - onsuccess:
         export GRABL_USERNAME=$CIRCLE_USERNAME
         export GRABL_TOKEN=$CIRCLE_TOKEN
-        bazel run @graknlabs_grabl//release:success -- --test deploy-A --org $CIRCLE_ORG --repo $CIRCLE_REPO --job-id $CIRCLE_JOB_ID
+        bazel run @graknlabs_grabl//release/deployment:success -- --name deploy-github --org $CIRCLE_ORG --repo $CIRCLE_REPO --job-id $CIRCLE_JOB_ID
     - onerror:
         export GRABL_USERNAME=$CIRCLE_USERNAME
         export GRABL_TOKEN=$CIRCLE_TOKEN
-        bazel run @graknlabs_grabl//release:error -- --test deploy-A --org $CIRCLE_ORG --repo $CIRCLE_REPO --job-id $CIRCLE_JOB_ID
+        bazel run @graknlabs_grabl//release/deployment:error -- --name deploy-github --org $CIRCLE_ORG --repo $CIRCLE_REPO --job-id $CIRCLE_JOB_ID
   grabl-release-completed:
     run: |
       export GRABL_USERNAME=$CIRCLE_USERNAME
       export GRABL_TOKEN=$CIRCLE_TOKEN
-      bazel run @graknlabs_grabl//release:completed -- --org $CIRCLE_ORG --repo $CIRCLE_REPO
+      bazel run @graknlabs_grabl//release/deployment:completed -- --org $CIRCLE_ORG --repo $CIRCLE_REPO
 
 workflows:
   grakn:
@@ -64,5 +66,7 @@ workflows:
 
   grakn-release:
     jobs:
-      - deploy-a
-      - grabl-release-completed
+      - deploy-github
+      - grabl-release-completed:
+          requires:
+            - deploy-a
