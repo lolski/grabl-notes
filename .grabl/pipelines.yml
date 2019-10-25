@@ -4,31 +4,29 @@
 dependency:
   config:
     dependencies:
-      - graql:
-          org: graknlabs
-          repo: graql
-          type: [snapshot, release]
-      - protocol:
-          org: graknlabs
-          repo: protocol
-          type: [snapshot, release]
-      - client-java:
-          org: graknlabs
-          repo: client-java
-          type: release
-  validate:
+      - graql: [snapshot, release]
+      - protocol: [snapshot, release]
+      - client-java: release
+  status:
+    job:
+      machine: ubuntu-19.10
+      type: foreground
+      run: bazel run @graknlabs_build_tools//dependency-status -- graql@graknlabs_graql protocol@graknlabs_protocol client-java@graknlabs_client_java
+      # export $GRABL_DEPENDENCIES_STATUS="graql@123,protocol@234,client-java@345"
+
+  validation:
     jobs:
-      depedency-validate-build:
+      dependency-validate-build:
         machine: ubuntu-19.10
         type: foreground
         run: |
-          bazel run @graknlabs_build_tools//sync-dependencies-bazel $GRABL_NEW_DEPENDENCIES         # graql@abc123 protocol@bcd234
+          bazel run @graknlabs_build_tools//sync-dependencies-bazel $GRABL_DEPENDENCIES_NEW         # graql@abc123 protocol@bcd234
           bazel build //...
       dependency-validate-correctness:
         machine: ubuntu-19.10
           type: foreground
           run: |
-            bazel run @graknlabs_build_tools//sync-dependencies-bazel $GRABL_NEW_DEPENDENCIES         # graql@abc123 protocol@bcd234
+            bazel run @graknlabs_build_tools//sync-dependencies-bazel $GRABL_DEPENDENCIES_NEW         # graql@abc123 protocol@bcd234
             bazel build //test/basic-correctness
     execution:
       - depedency-validate-build
@@ -38,8 +36,8 @@ dependency:
       machine: ubuntu-19.10
       type: foreground
       run: |
-        bazel run @graknlabs_build_tools//sync-dependencies-bazel $GRABL_NEW_DEPENDENCIES         # graql@abc123 protocol@bcd234
-        bazel run @graknlabs_build_tools//sync-dependencies-npm $GRABL_NEW_DEPENDENCIES           # graql@abc123 protocol@bcd234
+        bazel run @graknlabs_build_tools//sync-dependencies-bazel $GRABL_DEPENDENCIES_NEW         # graql@abc123 protocol@bcd234
+        bazel run @graknlabs_build_tools//sync-dependencies-npm $GRABL_DEPENDENCIES_NEW           # graql@abc123 protocol@bcd234
         # Committing and pushing to the upstream repo should be done by Grabl
 
 build:
@@ -102,6 +100,6 @@ release:
     execution:
   bump:
     job:
-      machine: ubuntu 19.10
+      machine: ubuntu-19.10
       type: foreground
       run: bazel run @graknlabs_build_tools//ci:version-bump
