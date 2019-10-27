@@ -11,7 +11,7 @@ dependency:
     job:
       machine: ubuntu-19.10
       type: foreground
-      run: bazel run @graknlabs_build_tools//dependency-status -- graql@graknlabs_graql protocol@graknlabs_protocol client-java@graknlabs_client_java
+      script: bazel run @graknlabs_build_tools//dependency-status -- graql@graknlabs_graql protocol@graknlabs_protocol client-java@graknlabs_client_java
       # export $GRABL_DEPENDENCIES_STATUS="graql@123,protocol@234,client-java@345"
 
   validation:
@@ -19,13 +19,13 @@ dependency:
       dependency-validate-build:
         machine: ubuntu-19.10
         type: foreground
-        run: |
+        script: |
           bazel run @graknlabs_build_tools//sync-dependencies-bazel $GRABL_DEPENDENCIES_NEW         # graql@abc123 protocol@bcd234
           bazel build //...
       dependency-validate-correctness:
         machine: ubuntu-19.10
           type: foreground
-          run: |
+          script: |
             bazel run @graknlabs_build_tools//sync-dependencies-bazel $GRABL_DEPENDENCIES_NEW         # graql@abc123 protocol@bcd234
             bazel build //test/basic-correctness
     execution:
@@ -35,7 +35,7 @@ dependency:
     job:
       machine: ubuntu-19.10
       type: foreground
-      run: |
+      script: |
         bazel run @graknlabs_build_tools//sync-dependencies-bazel $GRABL_DEPENDENCIES_NEW         # graql@abc123 protocol@bcd234
         bazel run @graknlabs_build_tools//sync-dependencies-npm $GRABL_DEPENDENCIES_NEW           # graql@abc123 protocol@bcd234
         # Committing and pushing to the upstream repo should be done by Grabl
@@ -46,7 +46,7 @@ build:
       run-grakn-1:
         machine: ubuntu-19.10
         type: background
-        run: |
+        script: |
           bazel build //:grakn-core-all-linux-targz
           tar -xf ./bazel-bin/grakn-core-all-linux.targz -C ./dist/
           cd ./dist/
@@ -54,14 +54,14 @@ build:
       run-grakn-2:
         machine: ubuntu-19.10
         type: background
-        run: |
+        script: |
           bazel build //:grakn-core-all-linux-targz
           tar -xf ./bazel-bin/grakn-core-all-linux.targz -C ./dist/
           ./grakn server start join $GRABL_PERFORMANCE_RUN_GRAKN_1_ADDRESS
       run-grakn-3:
         machine: ubuntu-19.10
         type: background
-        run: |
+        script: |
           bazel build //:grakn-core-all-linux-targz
           tar -xf ./bazel-bin/grakn-core-all-linux.targz -C ./dist/
           cd ./dist/
@@ -69,7 +69,7 @@ build:
       test-performance-big:
         machine: ubuntu-19.10
         type: foreground
-        run: |
+        script: |
           bazel test //test/performance:big --
             --grakn-address $GRABL_PERFORMANCE_RUN_GRAKN_1_ADDRESS
             --org $GRABL_ORG
@@ -93,7 +93,7 @@ release:
     job:
       machine: ubuntu-19.10
       type: foreground
-      run: |
+      script: |
         bazel run @graknlabs_build_tools//ci:release-validate-deps -- graknlabs_common graknlabs_graql graknlabs_protocol
   deployment:
     jobs:
@@ -102,4 +102,4 @@ release:
     job:
       machine: ubuntu-19.10
       type: foreground
-      run: bazel run @graknlabs_build_tools//ci:version-bump
+      script: bazel run @graknlabs_build_tools//ci:version-bump
