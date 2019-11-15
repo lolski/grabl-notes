@@ -52,7 +52,7 @@ jobs:
     - run: |
         export GRABL_USERNAME=$CIRCLE_USERNAME
         export GRABL_TOKEN=$CIRCLE_TOKEN
-        bazel run @graknlabs_build_tools//release/deployment:completed # this job expects $CIRCLE_JOB_NAME $CIRCLE_ORG, $CIRCLE_REPO, $CIRCLE_JOB_ID
+        bazel run @graknlabs_build_tools//release/deployment:success # this job expects $CIRCLE_ORG, $CIRCLE_REPO, $CIRCLE_JOB_ID
 
 workflows:
   grakn:
